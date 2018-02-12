@@ -5,16 +5,17 @@ const bucket = conf.QNKey.BUCKET;     //要上传的空间
 const accessKey = conf.QNKey.AK;
 const secretKey = conf.QNKey.SK;
 
+const mac = new qiniu.auth.digest.Mac(accessKey, secretKey);
+const config = new qiniu.conf.Config();
+//config.useHttpsDomain = true;
+config.zone = qiniu.zone.Zone_z0;
+
 const CDN = {
     /**
      * 获取空间文件列表
      * @param option 七牛参数，暂时只支持前缀全量查询
      */
     bucketList: async function(options) {
-        var mac = new qiniu.auth.digest.Mac(accessKey, secretKey);
-        var config = new qiniu.conf.Config();
-        //config.useHttpsDomain = true;
-        config.zone = qiniu.zone.Zone_z0;
         var bucketManager = new qiniu.rs.BucketManager(mac, config);
         // @param options 列举操作的可选参数
         //                prefix    列举的文件前缀
@@ -58,16 +59,12 @@ const CDN = {
      * @param filePath 本地文件路径
      */
     upload: async function(key, filePath) {
-        var mac = new qiniu.auth.digest.Mac(accessKey, secretKey);
-        
         var options = {
             scope: bucket,
         };
         var putPolicy = new qiniu.rs.PutPolicy(options);
 
         var uploadToken = putPolicy.uploadToken(mac);
-        var config = new qiniu.conf.Config();
-        config.zone = qiniu.zone.Zone_z0;
 
         var formUploader = new qiniu.form_up.FormUploader(config);
         var putExtra = new qiniu.form_up.PutExtra();

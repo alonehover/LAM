@@ -1,5 +1,10 @@
-const Koa = require('koa');
 const fs = require("fs");
+const path = require("path")
+const Koa = require('koa');
+const logger = require("koa-logger");
+const bodyParser = require("koa-bodyparser");
+const serverStatic = require("koa-static");
+const views = require("koa-views");
 
 const routers = require('./routers');
 
@@ -12,23 +17,15 @@ const asyncLocal = require('./middleWare/asyncLocal')();
 
 const app = new Koa();
 
-// x-response-time 
-app.use(async (ctx, next) => {
-    const start = Date.now();
-    await next();
-    const ms = Date.now() - start;
-    ctx.set('X-Response-Time', `${ms}ms`);
-});
+app.use(logger());
 
-// logger
-app.use(async (ctx, next) => {
-    const start = Date.now();
-    await next();
-    const ms = Date.now() - start;
-    console.log(`${ctx.method} ${ctx.url} - ${ms}ms`);
-});
+app.use(bodyParser());
 
+// 静态资源目录
+app.use(serverStatic(path.resolve(__dirname, "./public/dist")));
 
+// 页面模板目录
+app.use(views(path.resolve(__dirname, "./views"), {map: {html: "ejs"}}));
 
 routers(app);
 

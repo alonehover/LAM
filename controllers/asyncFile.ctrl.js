@@ -18,17 +18,16 @@ const saveDir = conf.tempPath;
 const asyncFile = {
     init(router) {
         router.get("/", this.index.bind(this));
-        // router.get("/list", this.cdn.bind(this));
+        router.get("/async", this.asyncLib.bind(this));
     },
 
     async index(ctx, next) {
-        this.asyncLib();
-        ctx.body = "hello cdn";
-        await next();
+        // this.asyncLib();
+        await ctx.render("index");
     },
 
     asyncLib() {
-        const self = this        
+        const self = this;
         let libUrl = [];
 
         for (const name in libData) {
@@ -39,14 +38,8 @@ const asyncFile = {
                     if(libData[name][ver].async === 0) {
                         const resUrl = `${libOriginHost}/${name}/${ver}/${name}.min.js`;
                         const tempPath = saveDir + `/${name}/${ver}`
-    
-                        mkdirp(tempPath, function(err) {
-                            if(err) {
-                                console.log(err)
-                            }
-    
-                            self.download(resUrl, tempPath , name);
-                        });
+
+                        self.download(resUrl, tempPath , name);
                     }
                 }
             }
@@ -65,12 +58,18 @@ const asyncFile = {
 
         console.log(filePath + " 文件不存在，即将下载...");
 
-        const down = request(url).pipe(fs.createWriteStream(filePath));
+        mkdirp(tempPath, function(err) {
+            if(err) {
+                console.log(err)
+            }
 
-        down.on("close", function() {
-            console.log(filePath + " 文件已保存！");
-            self.fileUpload(filePath);
-        })
+            const down = request(url).pipe(fs.createWriteStream(filePath));
+
+            down.on("close", function() {
+                console.log(filePath + " 文件已保存！");
+                self.fileUpload(filePath);
+            })
+        });
     },
 
     async fileUpload(filePath) {

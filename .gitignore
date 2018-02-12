@@ -7,3 +7,5 @@ config.json
 personal.conf
 logs/
 temp
+public/dist
+db/libData.json
